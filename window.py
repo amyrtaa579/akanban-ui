@@ -153,6 +153,9 @@ class AKanban(QMainWindow):
         self.setWindowTitle("AKanban")
         self.resize(900, 500)
 
+        # 🆕 Меню "Справка" со ссылкой на репозиторий
+        self._setup_help_menu()
+
         self.setStyleSheet("""
             QMainWindow { font-family: 'Segoe UI', 'Roboto', sans-serif; }
             QLineEdit { padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
@@ -261,6 +264,32 @@ class AKanban(QMainWindow):
     def closeEvent(self, event):
         self.save_tasks()
         event.accept()
+
+    def _setup_help_menu(self):
+        """Создаёт меню Справка с информацией и ссылкой на GitHub"""
+        from PySide6.QtWidgets import QMenuBar, QMessageBox
+        from PySide6.QtGui import QDesktopServices
+        from PySide6.QtCore import QUrl
+        
+        menubar = self.menuBar()
+        help_menu = menubar.addMenu("Справка")
+        
+        # Пункт "О программе"
+        about_action = help_menu.addAction("О программе")
+        about_action.triggered.connect(lambda: QMessageBox.information(
+            self, 
+            "О AKanban", 
+            "AKanban v1.0\n\n"
+            "Персональное Kanban-приложение для управления задачами.\n"
+            "Написано на Python + PySide6.\n\n"
+            "GitHub: github.com/amyrtaa579/akanban-ui"
+        ))
+        
+        # Пункт "Открыть на GitHub"
+        github_action = help_menu.addAction("Открыть на GitHub")
+        github_action.triggered.connect(lambda: QDesktopServices.openUrl(
+            QUrl("https://github.com/amyrtaa579/akanban-ui")
+        ))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
