@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Виртуальные окружения
+venv/
+env/
+.venv/
+
+# Сборка и бинарники
+build/
+dist/
+*.spec
+*.exe
+
+# Данные приложения (персональные задачи не коммитим)
+tasks.json
+
+# ОС и IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
