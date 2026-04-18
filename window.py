@@ -10,6 +10,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QMimeData
 from PySide6.QtGui import QDrag
+# 🆕 Импорт хранилища данных
+from core.data_store import DataStore
 
 class TaskCard(QWidget):
     def __init__(self, task_data: dict, status: str, app_ref):
@@ -165,10 +167,9 @@ class AKanban(QMainWindow):
             QPushButton:hover { background-color: #27ae60; }
         """)
 
-        # 🆕 Используем вынесенную утилиту для путей
-        self.data_file = get_data_file_path("tasks.json")
-        self.tasks = self.load_tasks()
-
+        self.store = DataStore("tasks.json")
+        self.tasks = self.store.data  # 🆕 Берём данные из кэша
+        
         central = QWidget()
         self.setCentralWidget(central)
         main_layout = QHBoxLayout(central)
@@ -199,24 +200,6 @@ class AKanban(QMainWindow):
 
         self.render_tasks()
 
-    def load_tasks(self):
-        if os.path.exists(self.data_file):
-            try:
-                with open(self.data_file, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    for key in ["надо", "делаю", "готово"]:
-                        if key not in data:
-                            data[key] = []
-                        if data[key] and isinstance(data[key][0], str):
-                            data[key] = [{"id": int(time.time() + i), "text": t} for i, t in enumerate(data[key])]
-                    return data
-            except Exception:
-                pass
-        return {"надо": [], "делаю": [], "готово": []}
-
-    def save_tasks(self):
-        with open(self.data_file, "w", encoding="utf-8") as f:
-            json.dump(self.tasks, f, ensure_ascii=False, indent=2)
 
     def render_tasks(self):
         for col in self.columns.values():
@@ -233,39 +216,32 @@ class AKanban(QMainWindow):
     def add_task(self):
         text = self.task_input.text().strip()
         if text:
-            new_task = {"id": int(time.time() * 1000), "text": text}
-            self.tasks["надо"].append(new_task)
-            self.save_tasks()
+            self.store.add_task("надо", text)
+            self.tasks = self.store.load()  # Перезагружаем актуальные данные
             self.render_tasks()
             self.task_input.clear()
             self.task_input.setFocus()
 
     def delete_task(self, status, task_id):
-        self.tasks[status] = [t for t in self.tasks[status] if t["id"] != task_id]
-        self.save_tasks()
+        self.store.delete_task(status, task_id)
+        self.tasks = self.store.load()
         self.render_tasks()
 
     def move_task(self, old_status, new_status, task_id):
-        task_to_move = None
-        for t in self.tasks[old_status]:
-            if t["id"] == task_id:
-                task_to_move = t
-                break
-        if task_to_move:
-            self.tasks[old_status].remove(task_to_move)
-            self.tasks[new_status].append(task_to_move)
-            self.save_tasks()
+        # 🆕 Делегируем логику хранилищу
+        if self.store.move_task(old_status, new_status, task_id):
+            self.tasks = self.store.load()  # Перезагружаем актуальные данные
             self.render_tasks()
 
     def edit_task(self, status, task_id, new_text):
-        for t in self.tasks[status]:
-            if t["id"] == task_id:
-                t["text"] = new_text
-                break
-        self.save_tasks()
+        # 🆕 Делегируем логику хранилищу
+        if self.store.edit_task(status, task_id, new_text):
+            self.tasks = self.store.load()
+            self.render_tasks()
 
     def closeEvent(self, event):
-        self.save_tasks()
+        # 🆕 Данные уже сохраняются после каждой операции в DataStore,
+        # поэтому здесь ничего делать не нужно
         event.accept()
 
     def _setup_help_menu(self):
