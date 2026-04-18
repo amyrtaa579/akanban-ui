@@ -11,8 +11,8 @@
 ## Установка и запуск
 ```bash
 # 1. Клонировать репозиторий
-git clone https://github.com/ТВОЙ_НИК/AKanban.git
-cd AKanban
+git clone git@github.com:amyrtaa579/akanban-ui.git
+cd akanban-ui
 
 # 2. Создать окружение и установить зависимости
 python -m venv venv
