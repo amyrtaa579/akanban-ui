@@ -163,7 +163,15 @@ class AKanban(QMainWindow):
             QPushButton:hover { background-color: #27ae60; }
         """)
 
-        self.data_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tasks.json")
+        # 🆕 Универсальный путь: работает и в python, и в .exe
+        if getattr(sys, 'frozen', False):
+            # Запущено как скомпилированный exe
+            app_dir = os.path.dirname(sys.executable)
+        else:
+            # Запущено через python window.py
+            app_dir = os.path.dirname(os.path.abspath(__file__))
+            
+        self.data_file = os.path.join(app_dir, "tasks.json")
         self.tasks = self.load_tasks()
 
         central = QWidget()
